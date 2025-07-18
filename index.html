@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="3D Bar Chart VR - Immersive Analytics Visualization">
+    <title>3D Bar Chart VR - Immersive Analytics</title>
+    
+    <!-- A-Frame VR Framework -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.4.2/aframe-extras.min.js"></script>
+    
+    <!-- D3.js for Data Visualization -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="script.js" defer></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            color: white;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .controls-info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            color: white;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .data-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            color: white;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+        }
+        
+        .loading.hidden {
+            display: none;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="title">3D Bar Chart VR</div>
+        <div class="subtitle">Loading Immersive Analytics Experience...</div>
+    </div>
+    
+    <div class="ui-overlay">
+        <h2>3D Bar Chart VR</h2>
+        <p>Immersive Analytics Visualization</p>
+        <p>Based on Jansen et al. (2013) Physical Visualizations</p>
+    </div>
+    
+    <div class="controls-info">
+        <h3>Controls:</h3>
+        <p>• Mouse: Look around</p>
+        <p>• WASD: Move around</p>
+        <p>• Q/E: Move up/down</p>
+        <p>• Click: Select bars</p>
+        <p>• Scroll: Zoom in/out</p>
+        <p>• R: Reset camera</p>
+        <p>• VR Headset: Full immersion</p>
+    </div>
+    
+    <div class="data-info" id="dataInfo">
+        <h3>Dataset Information:</h3>
+        <p>Matrix: <span id="matrixSize">Loading...</span></p>
+        <p>Total Bars: <span id="totalBars">Loading...</span></p>
+        <p>Max Value: <span id="maxValue">Loading...</span></p>
+        <p>Min Value: <span id="minValue">Loading...</span></p>
+    </div>
+
+    <a-scene 
+        background="color: #1a1a2e; fog: type: exponential; color: #16213e; density: 0.01"
+        embedded
+        vr-mode-ui="enabled: true"
+        device-orientation-permission-ui="enabled: true"
+        renderer="antialias: true; colorManagement: true; sortObjects: true"
+        inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js">
+        
+        <!-- Camera with enhanced controls -->
+        <a-entity 
+            id="cameraRig"
+            position="0 20 60"
+            movement-controls="fly: true; constrainToNavMesh: false"
+            look-controls="reverseMouseDrag: false; smoothingFactor: 0.1">
+            <a-camera 
+                id="camera"
+                position="0 0 0"
+                look-controls="enabled: true"
+                wasd-controls="enabled: true"
+                cursor="rayOrigin: mouse"
+                raycaster="objects: .bar">
+            </a-camera>
+        </a-entity>
+        
+        <!-- Enhanced Lighting System -->
+        <a-entity light="type: ambient; color: #404040; intensity: 0.4"></a-entity>
+        <a-entity light="type: directional; color: #ffffff; intensity: 0.8" position="20 30 20"></a-entity>
+        <a-entity light="type: directional; color: #ffffff; intensity: 0.4" position="-20 30 -20"></a-entity>
+        <a-entity light="type: point; color: #4a90e2; intensity: 0.6; distance: 50" position="0 25 0"></a-entity>
+        
+        <!-- Ground Plane with Grid -->
+        <a-plane 
+            position="0 0 0" 
+            rotation="-90 0 0" 
+            width="100" 
+            height="100" 
+            color="#2a2a2a"
+            material="shader: flat; transparent: true; opacity: 0.8">
+        </a-plane>
+        
+        <!-- Grid Lines for Reference -->
+        <a-entity id="gridLines"></a-entity>
+        
+        <!-- Axis Labels -->
+        <a-entity id="axisLabels"></a-entity>
+        
+        <!-- Bar Chart Container -->
+        <a-entity id="bars" class="bar-chart"></a-entity>
+        
+        <!-- Interactive Elements -->
+        <a-entity id="interactiveElements"></a-entity>
+        
+        <!-- Environment -->
+        <a-sky color="#0f0f23"></a-sky>
+        
+        <!-- Performance Optimization -->
+        <a-entity id="performanceOptimizer"></a-entity>
+    </a-scene>
+</body>
+</html>
